@@ -1,0 +1,10 @@
+{
+  "name": "north-star-map",
+  "version": "0.1.0",
+  "description": "An interactive metrics tree for Duolingo, from the North Star down to the levers, with every public number sourced.",
+  "private": true,
+  "scripts": {
+    "serve": "python3 -m http.server 8000"
+  },
+  "license": "MIT"
+}
