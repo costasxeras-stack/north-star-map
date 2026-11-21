@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>North Star Map · Duolingo</title>
+<meta name="description" content="An interactive metrics tree for Duolingo: the North Star, the input metrics under it, public numbers with sources, and a simulator of Duolingo's published growth model.">
+<meta name="theme-color" content="#2e7d32">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232e7d32'/%3E%3Cpath d='M16 5l3 7 7 .6-5.4 4.6 1.7 7L16 20.4 9.7 24.2l1.7-7L6 12.6l7-.6z' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,600;7..72,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css?v=1">
+<style>
+:root{--accent:#2e7d32;--soft:#e8f3e8;--acq:#1565c0;--act:#6a1b9a;--eng:#ef6c00;--ret:#2e7d32;--mon:#5d4037}
+.hero{padding:34px 0 8px}
+.hero .kicker{font:600 12.5px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.hero h1{font-size:clamp(30px,4.8vw,46px);line-height:1.08;margin-top:10px;max-width:22ch}
+.hero p{color:var(--muted);font-size:18px;max-width:68ch;margin:12px 0 0}
+.nsm{background:var(--accent);color:#fff;border-radius:18px;padding:22px;margin-top:18px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+.nsm h2{color:#fff;font-size:24px}
+.nsm p{margin:6px 0 0;opacity:.92;font-size:15px;max-width:60ch}
+.nsm .val{text-align:right}
+.nsm .val b{font:700 44px/1 var(--display);display:block}
+.nsm .val span{font-size:13px;opacity:.9}
+.tree{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:14px}
+.br{border-radius:14px;border:1px solid var(--line);background:#fff;overflow:hidden;display:flex;flex-direction:column}
+.br h3{font:600 13px var(--body);letter-spacing:.05em;text-transform:uppercase;color:#fff;padding:10px 12px;margin:0}
+.br .q{font-size:12.5px;color:var(--muted);padding:8px 12px 0}
+.br ul{list-style:none;margin:0;padding:8px;display:grid;gap:6px}
+.br li button{width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font:500 13.5px var(--body);cursor:pointer;color:var(--ink);display:grid;gap:2px}
+.br li button small{color:var(--faint);font-size:12px}
+.br li button[aria-pressed="true"]{border-color:var(--c);box-shadow:0 0 0 1px var(--c) inset;background:var(--soft2)}
+.br li button .v{font-weight:700;color:var(--c)}
+.detail{border-radius:16px;border:2px solid var(--c,var(--accent));background:#fff;padding:20px;margin-top:14px}
+.detail h3{font:700 22px var(--display)}
+.detail .kv{display:grid;grid-template-columns:150px 1fr;gap:8px 14px;margin-top:12px;font-size:14.5px}
+.detail .kv>div:nth-child(odd){color:var(--faint);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;padding-top:2px}
+.badge{display:inline-block;font:600 11.5px var(--body);border-radius:999px;padding:2px 8px}
+.badge.rep{background:#e8f3e8;color:#2e7d32}.badge.der{background:#fff3e0;color:#ef6c00}.badge.nd{background:#efebe7;color:#5d5952}
+table.pub td,table.pub th{padding:8px 6px}
+.sim{display:grid;grid-template-columns:320px 1fr;gap:20px;margin-top:12px}
+.sim label{margin:10px 0 2px;font-size:13px;display:flex;justify-content:space-between}
+.sim label output{color:var(--accent);font-weight:700}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.lever{display:grid;grid-template-columns:170px 1fr 70px;gap:10px;align-items:center;font-size:14px;margin-top:8px}
+.lever .t{height:16px;border-radius:8px;background:#eeebe5;overflow:hidden}
+.lever .t i{display:block;height:100%;background:var(--accent)}
+.lever.top .t i{background:#ffb300}
+.lever .n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.warnbox{background:#fff8e1;border-left:4px solid #ffb300;border-radius:0 12px 12px 0;padding:10px 14px;font-size:14px;margin-top:12px}
+.finding{margin-top:14px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 12px 12px 0;padding:12px 14px;font-size:15px}
+.finding .tag{font:600 11.5px var(--body);text-transform:uppercase;letter-spacing:.05em;color:var(--accent);display:block;margin-bottom:4px}
+.sources li{font-size:13.5px;margin-top:6px}
+.states{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:10px}
+.states div{border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13px}
+.states b{display:block;font-size:13.5px}
+.states .on{border-color:var(--accent);background:var(--soft)}
+@media (max-width:980px){.tree{grid-template-columns:repeat(2,1fr)}.sim{grid-template-columns:1fr}}
+@media (max-width:600px){.tree{grid-template-columns:1fr}.nsm{grid-template-columns:1fr}.nsm .val{text-align:left}.detail .kv{grid-template-columns:1fr}.detail .kv>div:nth-child(odd){padding-top:6px}.lever{grid-template-columns:110px 1fr 56px;font-size:13px}.hero p{font-size:16.5px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="./"><i><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l1.5 3.6 3.9.3-3 2.5.9 3.8L8 10.2l-3.3 2 .9-3.8-3-2.5 3.9-.3z" fill="white"/></svg></i>North Star Map</a>
+  <nav><a class="hide-sm" href="https://github.com/costasxeras-stack/north-star-map">GitHub</a><a href="https://kostasxeras.com/">Portfolio</a></nav>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <span class="kicker">Product metrics tree · Duolingo · public data to Q3 2026</span>
+    <h1>One number to steer by, and the fifteen under it.</h1>
+    <p>Duolingo steers by daily active learners. This map breaks that North Star into acquisition, activation, engagement, retention and the monetisation that pays for it, with every public number linked to its source. Tap any metric for its definition, latest value and the levers that move it.</p>
+  </section>
+
+  <section class="nsm" aria-label="North Star metric">
+    <div><h2>North Star: Daily active users (DAUs)</h2><p>Learners who use the app or the learning part of the website on a given day, averaged over the quarter. Daily use is the habit that makes learning work, and Duolingo's own growth model is built to grow it.</p></div>
+    <div class="val"><b>64.9M</b><span>Q3 2026, +29% on Q3 2025 <span class="badge rep" style="background:rgba(255,255,255,.2);color:#fff">Reported</span></span></div>
+  </section>
+
+  <div class="tree" id="tree"></div>
+  <div class="detail" id="detail" aria-live="polite"></div>
+
+  <section class="card">
+    <h2>What the public numbers say</h2>
+    <p class="sub">Reported figures from Duolingo's shareholder letters. Ratios marked "derived" are my arithmetic on the reported figures.</p>
+    <div style="overflow-x:auto"><table class="pub"><thead><tr><th>Metric</th><th class="n">Q3 2025</th><th class="n">Q3 2026</th><th class="n">Change</th><th>Type</th></tr></thead><tbody id="pub"></tbody></table></div>
+    <div class="finding"><span class="tag">Reading the tree</span>Users are growing much faster than payers. DAUs rose 29% while paid subscribers rose 14%, so paid subscribers per DAU fell from 22.8% to 20.2%, and bookings per DAU from $5.58 to $4.87 a quarter (both derived). Duolingo says this is deliberate: in its Q4 2025 letter it estimated more than $50M of bookings given up in 2026 to remove friction from the free experience and grow users. The tree needs a counter-metric next to the North Star, which is why monetisation sits beside it, not under it.</div>
+  </section>
+
+  <section class="card">
+    <h2>Why retention of current users is the biggest lever</h2>
+    <p class="sub">Duolingo's growth model splits every user into one of seven states each day. DAUs are the sum of the four active ones. Moving users between states is what every metric in the tree does.</p>
+    <div class="states">
+      <div class="on"><b>New</b>First day ever</div><div class="on"><b>Current</b>Active today and in the past week</div><div class="on"><b>Reactivated</b>Active today, last seen 8 to 30 days ago</div><div class="on"><b>Resurrected</b>Active today, last seen over 30 days ago</div>
+      <div><b>At-risk weekly</b>Active in the past week, not today</div><div><b>At-risk monthly</b>Active in the past month, not the past week</div><div><b>Dormant</b>Inactive for 30 days or more</div>
+    </div>
+    <p class="sub" style="margin-top:12px">Duolingo simulated growing each transition rate by 2% month over month and found the current user retention rate (CURR) moved DAUs the most. The simulator below rebuilds that model. Try it.</p>
+    <div class="warnbox"><b>Illustrative values.</b> Duolingo does not publish its transition rates. The starting values below are my own assumptions, chosen to look like a large habit app. The model structure is Duolingo's. The numbers are not.</div>
+    <div class="sim">
+      <div id="rates"></div>
+      <div>
+        <h3 style="font:600 16px var(--body)">Extra DAUs a year after one rate improves by 2%</h3>
+        <p class="sub" id="simsub"></p>
+        <div id="levers"></div>
+        <div class="finding"><span class="tag">What the simulator shows</span><span id="simf"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>If I owned this tree</h2>
+    <ol class="sub" style="display:grid;gap:8px;padding-left:20px">
+      <li><b>Keep DAUs as the North Star, and pair it with paid subscribers per DAU as the counter-metric.</b> A user-first year is a choice. The pair makes the cost visible every week instead of once a quarter.</li>
+      <li><b>Report retention by user state internally, the way the growth model does.</b> CURR, new user retention and resurrection tell three different stories that one DAU number hides.</li>
+      <li><b>Give acquisition a quality metric, not only a volume one.</b> Partnerships inside games brought "millions of new and returning users" in Q3 2026. The question is how many became current users 30 days later.</li>
+      <li><b>Treat DAU/MAU as the engagement health check.</b> It rose from 37.3% to 42.4% (derived): more of the monthly base now shows up daily.</li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <h2>Sources</h2>
+    <ul class="sources">
+      <li><a href="https://www.sec.gov/Archives/edgar/data/0001562088/000162828026069474/q3fy26duolingo9-30x26share.htm">Duolingo Q3 2026 shareholder letter</a> (SEC filing, 3 November 2026): DAUs, MAUs, paid subscribers, bookings, drivers of growth.</li>
+      <li><a href="https://investors.duolingo.com/static-files/961ce633-3cee-49d0-bd7a-2c63731d45fb">Duolingo Q4 and FY 2025 shareholder letter</a> (26 February 2026): Q4 figures, the 2026 user-first strategy and the bookings given up for it.</li>
+      <li><a href="https://www.sec.gov/Archives/edgar/data/1562088/000162828026012494/duol-20251231.htm">Duolingo Form 10-K for 2025</a>: organic, word-of-mouth growth and marketing.</li>
+      <li><a href="https://blog.duolingo.com/growth-model-duolingo/">"Meaningful metrics: how data sharpened the focus of product teams"</a>, Duolingo blog (February 2023): the seven user states and the CURR result.</li>
+      <li><a href="https://www.lennysnewsletter.com/p/how-duolingo-reignited-user-growth">"How Duolingo reignited user growth"</a> by Jorge Mazal, former CPO, in Lenny's Newsletter: CURR as the North Star of the retention team.</li>
+    </ul>
+    <p class="note">Duolingo is not involved in this project. All figures are public. Nothing here comes from inside the company.</p>
+  </section>
+</main>
+<footer><div class="wrap"><span>North Star Map v0.1.0 by <a href="https://kostasxeras.com/">Konstantinos Xeras</a>, built with Claude (Anthropic). <a href="https://github.com/costasxeras-stack/north-star-map">Code and decisions on GitHub</a>.</span></div></footer>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var SRC = { q3: ['Q3 2026 letter', 'https://www.sec.gov/Archives/edgar/data/0001562088/000162828026069474/q3fy26duolingo9-30x26share.htm'], q4: ['Q4 2025 letter', 'https://investors.duolingo.com/static-files/961ce633-3cee-49d0-bd7a-2c63731d45fb'], k: ['2025 10-K', 'https://www.sec.gov/Archives/edgar/data/1562088/000162828026012494/duol-20251231.htm'], gm: ['Duolingo growth model post', 'https://blog.duolingo.com/growth-model-duolingo/'], lm: ['Jorge Mazal in Lenny\'s Newsletter', 'https://www.lennysnewsletter.com/p/how-duolingo-reignited-user-growth'] };
+  var BR = [
+    { id: 'acq', name: 'Acquisition', c: '--acq', q: 'Are new learners arriving?', m: [
+      { n: 'New users per day', v: 'Not disclosed', t: 'nd', def: 'Learners using Duolingo for the first time ever on a given day. The entry state of the growth model.', lev: ['Word of mouth from a strong brand and social content', 'Partnerships, for example Duo inside Brawl Stars and Eggy Party in Q3 2026', 'Paid marketing, which Duolingo says supplements its organic model', 'App store ranking and new subjects that open new audiences'], g: 'New user retention (activation). Volume without day-2 return is wasted spend.', s: ['k', 'q3'] },
+      { n: 'Organic share of new users', v: 'Not disclosed', t: 'nd', def: 'Share of new learners who were not acquired by paid marketing.', lev: ['Brand building and viral content', 'Referral and sharing features', 'Owned media and community'], g: 'Paid cost per new current user, once marketing grows.', s: ['k'] },
+      { n: 'MAUs', v: '153.1M', sub: 'Q3 2026, +13%', t: 'rep', def: 'Unique learners active in a month, averaged over the months of the quarter. Duolingo reports it as a supplemental metric.', lev: ['Everything in acquisition, plus reactivation and resurrection'], g: 'DAU/MAU. A growing MAU with flat daily use means shallow growth.', s: ['q3'] }
+    ] },
+    { id: 'act', name: 'Activation', c: '--act', q: 'Do new learners reach the first moment of value?', m: [
+      { n: 'New user retention rate (NURR)', v: 'Not disclosed', t: 'nd', def: 'Share of new users who come back the next day. In the growth model, the move from New to Current.', lev: ['Shorter, easier first lesson', 'Letting people learn before creating an account', 'Placement test so experienced learners skip the basics', 'A clear goal and reminder set on day one'], g: 'Lessons completed per new user. Do not inflate day 2 with notifications alone.', s: ['gm', 'lm'] },
+      { n: 'First lesson completion', v: 'Not disclosed', t: 'nd', def: 'Share of new users who finish their first lesson in the first session. A leading indicator for NURR.', lev: ['Fewer onboarding steps before the first exercise', 'Immediate feedback and celebration'], g: 'Day-7 retention of those who finish.', s: [] },
+      { n: 'Signed-up share of new users', v: 'Not disclosed', t: 'nd', def: 'Share of new learners who create an account, which keeps progress and enables reminders.', lev: ['Ask after the first lesson, when there is progress to save'], g: 'NURR must not fall when sign-up moves later.', s: [] }
+    ] },
+    { id: 'eng', name: 'Engagement', c: '--eng', q: 'Do active learners learn a lot each day?', m: [
+      { n: 'DAU/MAU', v: '42.4%', sub: 'Q3 2026, up from 37.3%', t: 'der', def: 'DAUs divided by MAUs. How many of the monthly learners show up on an average day. Derived from reported figures.', lev: ['Streaks and streak protection', 'Leaderboards and friend features', 'Better-timed notifications'], g: 'Lesson quality. Daily visits that do not teach are not the goal.', s: ['q3'] },
+      { n: 'Lessons per DAU', v: 'Not disclosed', t: 'nd', def: 'Average lessons completed per active learner per day.', lev: ['Video Call, AI conversation practice, for all Super subscribers by end of 2026', 'Avatar Collections and events such as Junior\'s Toy Hunt', 'New subjects such as chess, math and music'], g: 'Learning outcomes, for example test scores in research studies.', s: ['q3', 'q4'] },
+      { n: 'Learners with an active streak', v: 'Not disclosed', t: 'nd', def: 'Share of DAUs on a streak of 7 days or more. The habit indicator.', lev: ['Streak freeze and repair', 'Streak milestones'], g: 'Complaints and churn from streak anxiety.', s: ['lm'] }
+    ] },
+    { id: 'ret', name: 'Retention', c: '--ret', q: 'Do learners keep coming back?', m: [
+      { n: 'Current user retention (CURR)', v: 'Not disclosed', t: 'nd', def: 'Share of current users (active today and in the past week) who are still current the next day. The lever Duolingo found moves DAUs most.', lev: ['Leaderboards', 'Streak features', 'Notification timing and copy, tested in hundreds of experiments'], g: 'Uninstalls and notification opt-outs.', s: ['gm', 'lm', 'q3'] },
+      { n: 'Reactivation and resurrection rates', v: 'Not disclosed', t: 'nd', def: 'Daily share of lapsed learners who come back: reactivated after 8 to 30 days away, resurrected after more than 30.', lev: ['Win-back messages', 'New subjects and features', 'Partnerships that bring back old users'], g: 'Retention of the users who come back (RURR, SURR).', s: ['gm', 'q3'] },
+      { n: 'DAU growth', v: '+29%', sub: 'Q3 2026 YoY, from +23% in Q2', t: 'rep', def: 'Year-on-year change in average DAUs. The output of all retention and acquisition work combined.', lev: ['All of the above'], g: 'Paid subscribers per DAU.', s: ['q3'] }
+    ] },
+    { id: 'mon', name: 'Monetisation', c: '--mon', q: 'Does the habit pay for itself? (counter-metric)', m: [
+      { n: 'Paid subscribers', v: '13.1M', sub: 'Q3 2026, +14%', t: 'rep', def: 'Users with an active paid subscription at period end. Excludes free trials and non-paying family plan members.', lev: ['Super with unlimited Video Call', 'Family plans', 'Sunsetting Max: individual Max subscribers move to a Super family plan at the same price'], g: 'DAU growth. Duolingo has a stated guardrail not to degrade the free experience.', s: ['q3'] },
+      { n: 'Paid subscribers per DAU', v: '20.2%', sub: 'Q3 2026, from 22.8%', t: 'der', def: 'Paid subscribers divided by DAUs. How much of the daily base pays. Derived from reported figures.', lev: ['Paywall moments that do not block learning', 'Price and plan mix'], g: 'DAU growth and free user retention.', s: ['q3'] },
+      { n: 'Bookings per DAU (quarter)', v: '$4.87', sub: 'Q3 2026, from $5.58', t: 'der', def: 'Total quarterly bookings divided by average DAUs. Derived from reported figures.', lev: ['Subscription conversion', 'Ads and in-app purchases'], g: 'DAU growth.', s: ['q3'] }
+    ] }
+  ];
+  var sel = null;
+  function draw() {
+    $('tree').innerHTML = BR.map(function (b) {
+      return '<div class="br" style="--c:var(' + b.c + ');--soft2:color-mix(in srgb, var(' + b.c + ') 8%, white)"><h3 style="background:var(' + b.c + ')">' + b.name + '</h3><p class="q">' + esc(b.q) + '</p><ul>' + b.m.map(function (m, i) {
+        var id = b.id + i; return '<li><button type="button" data-m="' + id + '" aria-pressed="' + (sel === id) + '">' + esc(m.n) + '<small><span class="v">' + esc(m.v) + '</span>' + (m.sub ? ' · ' + esc(m.sub) : '') + '</small></button></li>';
+      }).join('') + '</ul></div>';
+    }).join('');
+  }
+  function show(id) {
+    sel = id; draw();
+    var b = BR.filter(function (x) { return id.indexOf(x.id) === 0; })[0], m = b.m[+id.slice(b.id.length)];
+    var badge = { rep: '<span class="badge rep">Reported</span>', der: '<span class="badge der">Derived from reported figures</span>', nd: '<span class="badge nd">Not disclosed publicly</span>' }[m.t];
+    $('detail').style.setProperty('--c', 'var(' + b.c + ')');
+    $('detail').innerHTML = '<span class="badge" style="background:var(' + b.c + ');color:#fff">' + b.name + '</span><h3 style="margin-top:8px">' + esc(m.n) + '</h3>' +
+      '<div class="kv"><div>Latest value</div><div><b>' + esc(m.v) + '</b>' + (m.sub ? ' · ' + esc(m.sub) : '') + ' ' + badge + '</div><div>Definition</div><div>' + esc(m.def) + '</div><div>Levers</div><div><ul style="margin:0;padding-left:18px">' + m.lev.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul></div><div>Guardrail</div><div>' + esc(m.g) + '</div>' +
+      (m.s.length ? '<div>Sources</div><div>' + m.s.map(function (s) { return '<a href="' + SRC[s][1] + '">' + SRC[s][0] + '</a>'; }).join(' · ') + '</div>' : '<div>Sources</div><div class="note" style="margin:0">A metric I propose. Not named in Duolingo\'s public material.</div>') + '</div>';
+  }
+  $('tree').addEventListener('click', function (e) { var b = e.target.closest('[data-m]'); if (b) { show(b.getAttribute('data-m')); if (window.innerWidth < 980) $('detail').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } });
+  draw(); show('ret0');
+  var PUB = [['DAUs', '50.5M', '64.9M', '+29%', 'rep'], ['MAUs', '135.3M', '153.1M', '+13%', 'rep'], ['Paid subscribers (period end)', '11.5M', '13.1M', '+14%', 'rep'], ['Total bookings', '$281.9M', '$316.1M', '+12%', 'rep'], ['Revenue', '$271.7M', '$309.0M', '+14%', 'rep'], ['DAU/MAU', '37.3%', '42.4%', '+5.1 pts', 'der'], ['Paid subscribers per DAU', '22.8%', '20.2%', '−2.6 pts', 'der'], ['Bookings per DAU', '$5.58', '$4.87', '−13%', 'der']];
+  $('pub').innerHTML = PUB.map(function (r) { return '<tr><td>' + r[0] + '</td><td class="n">' + r[1] + '</td><td class="n">' + r[2] + '</td><td class="n">' + r[3] + '</td><td>' + (r[4] === 'rep' ? '<span class="badge rep">Reported</span>' : '<span class="badge der">Derived</span>') + '</td></tr>'; }).join('');
+
+  // ---------- growth model simulator (illustrative rates)
+  var R = [
+    ['nurr', 'New user retention (NURR)', 0.40], ['curr', 'Current user retention (CURR)', 0.88], ['rurr', 'Reactivated user retention', 0.45], ['surr', 'Resurrected user retention', 0.35],
+    ['iwau', 'At-risk weekly back today', 0.12], ['wauloss', 'At-risk weekly to monthly', 0.10], ['react', 'Reactivation (at-risk monthly back)', 0.02], ['mauloss', 'At-risk monthly to dormant', 0.04], ['resur', 'Resurrection (dormant back)', 0.0015]
+  ];
+  var LEV = ['nurr', 'curr', 'rurr', 'surr', 'iwau', 'react', 'resur'];
+  $('rates').innerHTML = R.map(function (r) { return '<label for="r-' + r[0] + '">' + r[1] + ' <output id="o-' + r[0] + '">' + pct(r[2]) + '</output></label><input type="range" id="r-' + r[0] + '" min="0" max="' + (r[2] < 0.01 ? 0.01 : r[2] < 0.2 ? 0.3 : 0.98) + '" step="' + (r[2] < 0.01 ? 0.0001 : 0.005) + '" value="' + r[2] + '">'; }).join('') +
+    '<label for="r-new">New users per day, as % of starting DAU <output id="o-new">2.0%</output></label><input type="range" id="r-new" min="0.2" max="6" step="0.1" value="2"><div class="row"><button class="btn small" type="button" id="reset">Reset to my starting values</button></div>';
+  function pct(v) { return v < 0.01 ? (v * 100).toFixed(2) + '%' : (v * 100).toFixed(1) + '%'; }
+  function rates() { var o = {}; R.forEach(function (r) { o[r[0]] = +$('r-' + r[0]).value; }); o.newu = +$('r-new').value / 100; return o; }
+  function step(s, r, newPerDay) {
+    var a = { nw: newPerDay, cur: 0, rea: 0, res: 0, aw: 0, am: 0, dor: 0 };
+    a.cur += s.nw * r.nurr + s.cur * r.curr + s.rea * r.rurr + s.res * r.surr + s.aw * r.iwau;
+    a.aw += s.nw * (1 - r.nurr) + s.cur * (1 - r.curr) + s.rea * (1 - r.rurr) + s.res * (1 - r.surr) + s.aw * Math.max(0, 1 - r.iwau - r.wauloss);
+    a.am += s.aw * r.wauloss + s.am * Math.max(0, 1 - r.react - r.mauloss);
+    a.rea += s.am * r.react;
+    a.dor += s.am * r.mauloss + s.dor * (1 - r.resur);
+    a.res += s.dor * r.resur;
+    return a;
+  }
+  function dau(s) { return s.nw + s.cur + s.rea + s.res; }
+  function run(base, lever) {
+    // steady state at today's rates, with a fixed number of new users a day, then one rate improves by 2% (relative) and the model runs a year
+    var newAbs = base.newu * 100, s = { nw: 0, cur: 0, rea: 0, res: 0, aw: 0, am: 0, dor: 0 };
+    for (var j = 0; j < 4000; j++) s = step(s, base, newAbs);
+    var start = dau(s), r = Object.assign({}, base);
+    if (lever) r[lever] = Math.min(0.995, r[lever] * 1.02);
+    for (var d = 1; d <= 365; d++) s = step(s, r, newAbs);
+    return { start: start, end: dau(s) };
+  }
+  function sim() {
+    var base = rates(); R.forEach(function (r) { $('o-' + r[0]).textContent = pct(base[r[0]]); }); $('o-new').textContent = (base.newu * 100).toFixed(1) + '%';
+    var b = run(base, null), res = LEV.map(function (k) { var x = run(base, k); return { k: k, lift: (x.end / b.end - 1) * 100 }; }).sort(function (x, y) { return y.lift - x.lift; });
+    var mx = Math.max.apply(null, res.map(function (x) { return x.lift; })) || 1, name = function (k) { return R.filter(function (r) { return r[0] === k; })[0][1]; };
+    $('simsub').textContent = 'Each bar: DAUs one year after that one rate improves by 2% of its value (for example CURR from 88% to 89.8%), compared with leaving every rate as it is. The model starts from a steady state where daily new users stay constant.';
+    $('levers').innerHTML = res.map(function (x, i) { return '<div class="lever' + (i === 0 ? ' top' : '') + '"><span>' + esc(name(x.k)) + '</span><span class="t"><i style="width:' + Math.max(0, x.lift / mx * 100) + '%"></i></span><span class="n">+' + x.lift.toFixed(x.lift < 1 ? 2 : 1) + '%</span></div>'; }).join('');
+    var top = res[0], second = res[1];
+    $('simf').innerHTML = top.k === 'curr' ? 'With these assumptions, improving <b>CURR</b> adds ' + top.lift.toFixed(1) + '% to DAUs after a year, ' + (top.lift / Math.max(0.1, second.lift)).toFixed(1) + ' times the next lever (' + esc(name(second.k)) + '). Current users are most of the daily base, so a small daily gain compounds over the largest group. That matches what Duolingo reported, though these rates are mine.' : 'With your settings, <b>' + esc(name(top.k)) + '</b> is the biggest lever, not CURR. That happens when current users are a small share of daily users, for example in a young product with many new users. The lever depends on the shape of the user base.';
+  }
+  var t = null; document.addEventListener('input', function (e) { if (e.target.id && (e.target.id.indexOf('r-') === 0)) { clearTimeout(t); t = setTimeout(sim, 60); } });
+  $('reset').addEventListener('click', function () { R.forEach(function (r) { $('r-' + r[0]).value = r[2]; }); $('r-new').value = 2; sim(); });
+  sim();
+})();
+</script>
+</body>
+</html>
