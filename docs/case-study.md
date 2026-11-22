@@ -68,4 +68,4 @@ Full record: [decisions/0003-illustrative-simulator.md](decisions/0003-illustrat
 
 ## My role
 
-I framed the problem, made the product calls, checked every number and wrote the conclusions. Claude (Anthropic) wrote the code with me. 
+I framed the problem, made the product calls, checked every number and wrote the conclusions. 

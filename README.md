@@ -61,9 +61,9 @@ No usage data yet. These are the measures I would track, with targets to set aft
 2. Add quarterly history for DAUs, MAUs and paid subscribers as small charts
 3. Let visitors build their own tree for their own product and export it
 
-## How it was built
+## My role
 
-I framed the problem, made the product calls and wrote the conclusions. Claude (Anthropic) was my engineering partner for the code. 
+I framed the problem, made the product calls and wrote the conclusions. 
 
 ## Run it yourself
 
